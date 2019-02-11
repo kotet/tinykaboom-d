@@ -9,11 +9,13 @@ enum light_position = [10, 10, 10];
 enum sphere_radius = 1.5;
 enum sphere_color = [1, 1, 1];
 enum background_color = [0.2, 0.7, 0.8];
+enum noise_amplitude = 0.2;
 
 enum trace_limit = 128;
+enum trace_eps = 0.01;
 
-enum width = 1280;
-enum height = 960;
+enum width = 640;
+enum height = 480;
 enum filename = "./out.ppm";
 enum fov = PI / 3.0;
 enum eps = 0.1;
@@ -41,7 +43,9 @@ float norm(vec3f v)
 
 float signedDistance(vec3f p)
 {
-    return p.norm() - sphere_radius;
+    vec3f s = p.normalize()[] * sphere_radius;
+    float displacement = sin(s[0] * 16) * sin(s[1] * 16) * sin(s[2] * 16) * noise_amplitude;
+    return p.norm() - (sphere_radius + displacement);
 }
 
 bool traceSphere(vec3f orig, vec3f dir, ref vec3f pos)
@@ -52,7 +56,7 @@ bool traceSphere(vec3f orig, vec3f dir, ref vec3f pos)
         float d = signedDistance(pos);
         if (d < 0)
             return true;
-        pos[] = pos[] + dir[] * max(d * 0.1, 0.01);
+        pos[] = pos[] + dir[] * max(d * 0.1, trace_eps);
     }
     return false;
 }
@@ -84,14 +88,7 @@ void main()
                 light_dir = light_dir.normalize();
                 float light_intensity = distanceFieldNormal(hit).dotp(light_dir).max(0.4);
 
-                float displacement = 1.0;
-                displacement *= sin(16 * hit[0]);
-                displacement *= sin(16 * hit[1]);
-                displacement *= sin(16 * hit[2]);
-                displacement += 1.0;
-                displacement /= 2.0;
-
-                framebuffer[i + j * width] = sphere_color * displacement * light_intensity;
+                framebuffer[i + j * width] = sphere_color * light_intensity;
             }
             else
             {
