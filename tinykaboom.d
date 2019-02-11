@@ -1,6 +1,6 @@
 import std.stdio;
 import std.algorithm : min, max;
-import std.math : tan, sqrt, PI;
+import std.math : tan, sqrt, PI, sin;
 import std.parallelism : parallel;
 import std.range : iota;
 
@@ -84,7 +84,14 @@ void main()
                 light_dir = light_dir.normalize();
                 float light_intensity = distanceFieldNormal(hit).dotp(light_dir).max(0.4);
 
-                framebuffer[i + j * width] = sphere_color * light_intensity;
+                float displacement = 1.0;
+                displacement *= sin(16 * hit[0]);
+                displacement *= sin(16 * hit[1]);
+                displacement *= sin(16 * hit[2]);
+                displacement += 1.0;
+                displacement /= 2.0;
+
+                framebuffer[i + j * width] = sphere_color * displacement * light_intensity;
             }
             else
             {
