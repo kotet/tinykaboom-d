@@ -43,8 +43,7 @@ float norm(vec3f v)
 
 float signedDistance(vec3f p)
 {
-    vec3f s = p.normalize()[] * sphere_radius;
-    float displacement = sin(s[0] * 16) * sin(s[1] * 16) * sin(s[2] * 16) * noise_amplitude;
+    float displacement = sin(p[0] * 16) * sin(p[1] * 16) * sin(p[2] * 16) * noise_amplitude;
     return p.norm() - (sphere_radius + displacement);
 }
 
