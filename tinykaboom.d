@@ -28,6 +28,12 @@ float lerp(float a, float b, float t)
     return a + (b - a) * max(0, min(1, t));
 }
 
+vec3f lerp(vec3f a, vec3f b, float t)
+{
+    vec3f v = a[] + (b[] - a[]) * max(0, min(1, t));
+    return v;
+}
+
 float hash(float n)
 {
     float x = sin(n) * 43758.5453;
@@ -124,6 +130,33 @@ vec3f distanceFieldNormal(vec3f pos)
     return normalize([nx, ny, nz]);
 }
 
+vec3f PaletteFire(float d)
+{
+    vec3f yellow = [1.7, 1.3, 1.0];
+    vec3f orange = [1.0, 0.6, 0.0];
+    vec3f red = [1.0, 0.0, 0.0];
+    vec3f darkgray = [0.2, 0.2, 0.2];
+    vec3f gray = [0.4, 0.4, 0.4];
+
+    float x = d.min(1).max(0);
+    if (x < 0.25)
+    {
+        return lerp(gray, darkgray, x * 4);
+    }
+    else if (x < 0.5)
+    {
+        return lerp(darkgray, red, x * 4 - 1);
+    }
+    else if (x < 0.75)
+    {
+        return lerp(red, orange, x * 4 - 2);
+    }
+    else
+    {
+        return lerp(orange, yellow, x * 4 - 3);
+    }
+}
+
 void main()
 {
     auto framebuffer = new vec3f[](width * height);
@@ -138,11 +171,12 @@ void main()
             bool b = traceSphere(camera_position, normalize([dir_x, dir_y, dir_z]), hit);
             if (b)
             {
+                float noise_level = (sphere_radius - hit.norm()) / noise_amplitude;
                 vec3f light_dir = light_position[] - hit[];
                 light_dir = light_dir.normalize();
                 float light_intensity = distanceFieldNormal(hit).dotp(light_dir).max(0.4);
 
-                framebuffer[i + j * width] = sphere_color * light_intensity;
+                framebuffer[i + j * width] = PaletteFire((noise_level - 0.2) * 2)[] * light_intensity;
             }
             else
             {
